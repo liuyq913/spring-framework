@@ -98,7 +98,7 @@ import org.springframework.util.Assert;
  * lazily registered ORM resources (e.g. a Hibernate {@code Session}).
  *
  * @author Juergen Hoeller
- * @since 02.05.2003
+ * @since 02.05.
  * @see #setNestedTransactionAllowed
  * @see java.sql.Savepoint
  * @see DataSourceUtils#getConnection(javax.sql.DataSource)

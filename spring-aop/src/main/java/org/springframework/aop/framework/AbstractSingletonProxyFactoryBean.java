@@ -157,7 +157,7 @@ public abstract class AbstractSingletonProxyFactoryBean extends ProxyConfig
 			}
 		}
 
-		// Add the main interceptor (typically an Advisor).
+		// Add the main interceptor (typically an Advisor).   添加通知器的地方  （DefaultPointcutAdvisor || TransactionAttributeSourceAdvisor）
 		proxyFactory.addAdvisor(this.advisorAdapterRegistry.wrap(createMainInterceptor()));
 
 		if (this.postInterceptors != null) {
@@ -175,7 +175,7 @@ public abstract class AbstractSingletonProxyFactoryBean extends ProxyConfig
 			proxyFactory.setInterfaces(this.proxyInterfaces);
 		}
 		else if (!isProxyTargetClass()) {
-			// Rely on AOP infrastructure to tell us what interfaces to proxy.
+			// Rely on AOP infrastructure to tell us what interfaces to proxy. 根据AOP基础设施来确定使用哪个接口作为代理
 			Class<?> targetClass = targetSource.getTargetClass();
 			if (targetClass != null) {
 				proxyFactory.setInterfaces(ClassUtils.getAllInterfacesForClass(targetClass, this.proxyClassLoader));

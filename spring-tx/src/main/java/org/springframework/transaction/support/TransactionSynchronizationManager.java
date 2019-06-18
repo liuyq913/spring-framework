@@ -438,7 +438,7 @@ public abstract class TransactionSynchronizationManager {
 	 * @param active {@code true} to mark the current thread as being associated
 	 * with an actual transaction; {@code false} to reset that marker
 	 */
-	public static void setActualTransactionActive(boolean active) {
+	public static void setActualTransactionActive(boolean active) {//是否有活跃的事务
 		actualTransactionActive.set(active ? Boolean.TRUE : null);
 	}
 

@@ -184,7 +184,7 @@ public abstract class AbstractSingletonProxyFactoryBean extends ProxyConfig
 
 		postProcessProxyFactory(proxyFactory);
 
-		this.proxy = proxyFactory.getProxy(this.proxyClassLoader);
+		this.proxy = proxyFactory.getProxy(this.proxyClassLoader); //这里是已经设置好了事物拦截器的代理对象
 	}
 
 	/**

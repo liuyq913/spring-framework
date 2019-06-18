@@ -98,6 +98,7 @@ public class NameMatchTransactionAttributeSource implements TransactionAttribute
 	}
 
 
+	//这里来匹配方法对应的事物属性配置
 	@Override
 	@Nullable
 	public TransactionAttribute getTransactionAttribute(Method method, @Nullable Class<?> targetClass) {
@@ -109,6 +110,7 @@ public class NameMatchTransactionAttributeSource implements TransactionAttribute
 		String methodName = method.getName();
 		TransactionAttribute attr = this.nameMap.get(methodName);
 
+		//没有值则用simpleMatch来匹配
 		if (attr == null) {
 			// Look for most specific name match.
 			String bestNameMatch = null;
@@ -121,7 +123,7 @@ public class NameMatchTransactionAttributeSource implements TransactionAttribute
 			}
 		}
 
-		return attr;
+		return attr; //返回null 则不是一个事物方法
 	}
 
 	/**

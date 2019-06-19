@@ -157,7 +157,7 @@ public class AnnotationTransactionAttributeSource extends AbstractFallbackTransa
 	 */
 	@Nullable
 	protected TransactionAttribute determineTransactionAttribute(AnnotatedElement element) {
-		for (TransactionAnnotationParser annotationParser : this.annotationParsers) {
+		for (TransactionAnnotationParser annotationParser : this.annotationParsers) { //通过annotationParser解析出来事物配置属性
 			TransactionAttribute attr = annotationParser.parseTransactionAnnotation(element);
 			if (attr != null) {
 				return attr;

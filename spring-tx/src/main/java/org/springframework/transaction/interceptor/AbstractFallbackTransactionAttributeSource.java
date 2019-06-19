@@ -86,6 +86,7 @@ public abstract class AbstractFallbackTransactionAttributeSource implements Tran
 	 * @param targetClass the target class for this invocation (may be {@code null})
 	 * @return a TransactionAttribute for this method, or {@code null} if the method
 	 * is not transactional
+	 *  获取事务配置  @Transation  声明式事务。。。都是从这里获取配置
 	 */
 	@Override
 	@Nullable
@@ -108,7 +109,7 @@ public abstract class AbstractFallbackTransactionAttributeSource implements Tran
 			}
 		}
 		else {
-			// We need to work it out.
+			// We need to work it out.  没有缓存重新计算事务属性
 			TransactionAttribute txAttr = computeTransactionAttribute(method, targetClass);
 			// Put it in the cache.
 			if (txAttr == null) {
@@ -149,7 +150,7 @@ public abstract class AbstractFallbackTransactionAttributeSource implements Tran
 	 */
 	@Nullable
 	protected TransactionAttribute computeTransactionAttribute(Method method, @Nullable Class<?> targetClass) {
-		// Don't allow no-public methods as required.
+		// Don't allow no-public methods as required. 如果事务只支持public方法，且当前方法修饰的不是public ,则直接返回null
 		if (allowPublicMethodsOnly() && !Modifier.isPublic(method.getModifiers())) {
 			return null;
 		}

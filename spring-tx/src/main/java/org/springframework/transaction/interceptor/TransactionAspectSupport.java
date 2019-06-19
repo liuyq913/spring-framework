@@ -136,7 +136,7 @@ public abstract class TransactionAspectSupport implements BeanFactoryAware, Init
 	private PlatformTransactionManager transactionManager;
 
 	@Nullable
-	private TransactionAttributeSource transactionAttributeSource;
+	private TransactionAttributeSource transactionAttributeSource; //声明方式的 NameMatchTransactionAttributeSource  注解方式的AnnotationTransactionAttributeSource
 
 	@Nullable
 	private BeanFactory beanFactory;
@@ -282,7 +282,7 @@ public abstract class TransactionAspectSupport implements BeanFactoryAware, Init
 		// If the transaction attribute is null, the method is non-transactional.
 		TransactionAttributeSource tas = getTransactionAttributeSource();
 		final TransactionAttribute txAttr = (tas != null ? tas.getTransactionAttribute(method, targetClass) : null); //获取事物属性配置
-		final PlatformTransactionManager tm = determineTransactionManager(txAttr); //获取事物处理器
+		final PlatformTransactionManager tm = determineTransactionManager(txAttr); //获取事物处理器  根据事务属性的限定符来先去缓存中拿，没有再去beanFacory里面拿
 		final String joinpointIdentification = methodIdentification(method, targetClass, txAttr);
 
 
@@ -294,7 +294,7 @@ public abstract class TransactionAspectSupport implements BeanFactoryAware, Init
 			try {
 				// This is an around advice: Invoke the next interceptor in the chain.
 				// This will normally result in a target object being invoked.
-				retVal = invocation.proceedWithInvocation();
+				retVal = invocation.proceedWithInvocation(); //调用真正方法
 			}
 			catch (Throwable ex) {
 				// target invocation exception
@@ -373,7 +373,7 @@ public abstract class TransactionAspectSupport implements BeanFactoryAware, Init
 	}
 
 	/**
-	 * Determine the specific transaction manager to use for the given transaction.
+	 * Determine the specific transaction manager to use for the given transaction. 选中事务管理器
 	 */
 	@Nullable
 	protected PlatformTransactionManager determineTransactionManager(@Nullable TransactionAttribute txAttr) {
@@ -384,7 +384,7 @@ public abstract class TransactionAspectSupport implements BeanFactoryAware, Init
 
 		String qualifier = txAttr.getQualifier();
 		if (StringUtils.hasText(qualifier)) {
-			return determineQualifiedTransactionManager(this.beanFactory, qualifier);
+			return determineQualifiedTransactionManager(this.beanFactory, qualifier); //从缓存中拿，没有再去beanFactory里面拿
 		}
 		else if (StringUtils.hasText(this.transactionManagerBeanName)) {
 			return determineQualifiedTransactionManager(this.beanFactory, this.transactionManagerBeanName);
@@ -549,7 +549,7 @@ public abstract class TransactionAspectSupport implements BeanFactoryAware, Init
 				logger.trace("Completing transaction for [" + txInfo.getJoinpointIdentification() +
 						"] after exception: " + ex);
 			}
-			if (txInfo.transactionAttribute != null && txInfo.transactionAttribute.rollbackOn(ex)) {
+			if (txInfo.transactionAttribute != null && txInfo.transactionAttribute.rollbackOn(ex)) { //支持回滚的异常，则直接回滚
 				try {
 					txInfo.getTransactionManager().rollback(txInfo.getTransactionStatus());
 				}

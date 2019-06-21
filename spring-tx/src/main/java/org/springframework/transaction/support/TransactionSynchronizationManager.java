@@ -78,6 +78,7 @@ public abstract class TransactionSynchronizationManager {
 
 	private static final Log logger = LogFactory.getLog(TransactionSynchronizationManager.class);
 
+	//存放那的是ConnectionHolder
 	private static final ThreadLocal<Map<Object, Object>> resources =
 			new NamedThreadLocal<>("Transactional resources");
 
@@ -183,7 +184,7 @@ public abstract class TransactionSynchronizationManager {
 			map = new HashMap<>();
 			resources.set(map);
 		}
-		Object oldValue = map.put(actualKey, value);
+		Object oldValue = map.put(actualKey, value); //绑定以datesorce为key  ConnectionHolder为value
 		// Transparently suppress a ResourceHolder that was marked as void...
 		if (oldValue instanceof ResourceHolder && ((ResourceHolder) oldValue).isVoid()) {
 			oldValue = null;

@@ -283,10 +283,10 @@ public abstract class TransactionAspectSupport implements BeanFactoryAware, Init
 		TransactionAttributeSource tas = getTransactionAttributeSource();
 		final TransactionAttribute txAttr = (tas != null ? tas.getTransactionAttribute(method, targetClass) : null); //获取事物属性配置
 		final PlatformTransactionManager tm = determineTransactionManager(txAttr); //获取事物处理器  根据事务属性的限定符来先去缓存中拿，没有再去beanFacory里面拿
-		final String joinpointIdentification = methodIdentification(method, targetClass, txAttr);
+		final String joinpointIdentification = methodIdentification(method, targetClass, txAttr); //这里根据代理类和事务属性，后面作为事务名称
 
 
-		//非回调函数来实现事物的提交和回滚  常见的DataSourceTransactionManager 就是非回调的方式来调用
+		//非回调函数来实现事物的提交和回滚  常见的DataSourceTransactionManager 就是非回调的方式来调用   声明式事务
 		if (txAttr == null || !(tm instanceof CallbackPreferringPlatformTransactionManager)) {
 			// Standard transaction demarcation with getTransaction and commit/rollback calls.
 			TransactionInfo txInfo = createTransactionIfNecessary(tm, txAttr, joinpointIdentification); //创建事物
@@ -302,12 +302,12 @@ public abstract class TransactionAspectSupport implements BeanFactoryAware, Init
 				throw ex;
 			}
 			finally {
-				cleanupTransactionInfo(txInfo);
+				cleanupTransactionInfo(txInfo); //清理事务对象
 			}
 			commitTransactionAfterReturning(txInfo); //提交事物
 			return retVal;
 		}
-   		//回调的方式来提交事物
+   		//回调的方式来提交事物   编程式事务
 		else {
 			final ThrowableHolder throwableHolder = new ThrowableHolder();
 
@@ -563,6 +563,7 @@ public abstract class TransactionAspectSupport implements BeanFactoryAware, Init
 					throw ex2;
 				}
 			}
+			//否则则提交事务
 			else {
 				// We don't roll back on this exception.
 				// Will still roll back if TransactionStatus.isRollbackOnly() is true.

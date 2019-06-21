@@ -339,7 +339,7 @@ public abstract class AbstractPlatformTransactionManager implements PlatformTran
 	 */
 	@Override
 	public final TransactionStatus getTransaction(@Nullable TransactionDefinition definition) throws TransactionException {
-		Object transaction = doGetTransaction(); //获取当前事务 （抽象方法，让子类去实现）
+		Object transaction = doGetTransaction(); //获取当前事务 （抽象方法，让子类去实现）  主要是从当前线程中获取到connection资源
 
 		// Cache debug flag to avoid repeated checks.
 		boolean debugEnabled = logger.isDebugEnabled(); //缓存debug标志位
@@ -355,7 +355,7 @@ public abstract class AbstractPlatformTransactionManager implements PlatformTran
 		}
 		//-------------------------当前不存在事务---------------------------
 		// Check definition settings for new transaction.
-		if (definition.getTimeout() < TransactionDefinition.TIMEOUT_DEFAULT) {
+		if (definition.getTimeout() < TransactionDefinition.TIMEOUT_DEFAULT) { //事务已经过时，则抛错
 			throw new InvalidTimeoutException("Invalid transaction timeout", definition.getTimeout());
 		}
 
@@ -376,7 +376,7 @@ public abstract class AbstractPlatformTransactionManager implements PlatformTran
 				boolean newSynchronization = (getTransactionSynchronization() != SYNCHRONIZATION_NEVER); //true
 				DefaultTransactionStatus status = newTransactionStatus(
 						definition, transaction, true, newSynchronization, debugEnabled, suspendedResources);
-				doBegin(transaction, definition);
+				doBegin(transaction, definition); //transaction 如果是创建新的事务，就回存入新的connection
 				prepareSynchronization(status, definition);
 				return status;
 			}
@@ -842,6 +842,7 @@ public abstract class AbstractPlatformTransactionManager implements PlatformTran
 					if (status.isDebug()) {
 						logger.debug("Initiating transaction rollback");
 					}
+					//回滚事务
 					doRollback(status);
 				}
 				else {

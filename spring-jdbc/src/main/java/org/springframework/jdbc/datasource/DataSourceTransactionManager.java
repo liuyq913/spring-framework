@@ -236,7 +236,7 @@ public class DataSourceTransactionManager extends AbstractPlatformTransactionMan
 	protected Object doGetTransaction() {
 		DataSourceTransactionObject txObject = new DataSourceTransactionObject();
 		txObject.setSavepointAllowed(isNestedTransactionAllowed());
-		ConnectionHolder conHolder =
+		ConnectionHolder conHolder = //从当前线程中获取到connnectionHolder
 				(ConnectionHolder) TransactionSynchronizationManager.getResource(obtainDataSource());
 		txObject.setConnectionHolder(conHolder, false);
 		return txObject;
@@ -257,30 +257,32 @@ public class DataSourceTransactionManager extends AbstractPlatformTransactionMan
 		Connection con = null;
 
 		try {
+			//在进来doBegin方法之前，就回从当前线程中获取到conectionHolder然塞到DataSourceTransactionObject 里面
+			//如果当先线程中没有Connection 则新建一个
 			if (!txObject.hasConnectionHolder() ||
 					txObject.getConnectionHolder().isSynchronizedWithTransaction()) {
 				Connection newCon = obtainDataSource().getConnection();
 				if (logger.isDebugEnabled()) {
 					logger.debug("Acquired Connection [" + newCon + "] for JDBC transaction");
 				}
-				txObject.setConnectionHolder(new ConnectionHolder(newCon), true);
+				txObject.setConnectionHolder(new ConnectionHolder(newCon), true); //是新事务
 			}
 
 			txObject.getConnectionHolder().setSynchronizedWithTransaction(true);
 			con = txObject.getConnectionHolder().getConnection();
-
+			//设置隔离级别
 			Integer previousIsolationLevel = DataSourceUtils.prepareConnectionForTransaction(con, definition);
 			txObject.setPreviousIsolationLevel(previousIsolationLevel);
 
 			// Switch to manual commit if necessary. This is very expensive in some JDBC drivers,
 			// so we don't want to do it unnecessarily (for example if we've explicitly
-			// configured the connection pool to set it already).
+			// configured the connection pool to set it already). 开启事务
 			if (con.getAutoCommit()) {
 				txObject.setMustRestoreAutoCommit(true);
 				if (logger.isDebugEnabled()) {
 					logger.debug("Switching JDBC Connection [" + con + "] to manual commit");
 				}
-				con.setAutoCommit(false);
+				con.setAutoCommit(false); //开启事务标志
 			}
 
 			prepareTransactionalConnection(con, definition);
@@ -288,7 +290,7 @@ public class DataSourceTransactionManager extends AbstractPlatformTransactionMan
 
 			int timeout = determineTimeout(definition);
 			if (timeout != TransactionDefinition.TIMEOUT_DEFAULT) {
-				txObject.getConnectionHolder().setTimeoutInSeconds(timeout);
+				txObject.getConnectionHolder().setTimeoutInSeconds(timeout); //超时时间设置
 			}
 
 			// Bind the connection holder to the thread.
@@ -341,6 +343,7 @@ public class DataSourceTransactionManager extends AbstractPlatformTransactionMan
 			logger.debug("Rolling back JDBC transaction on Connection [" + con + "]");
 		}
 		try {
+			//回滚
 			con.rollback();
 		}
 		catch (SQLException ex) {

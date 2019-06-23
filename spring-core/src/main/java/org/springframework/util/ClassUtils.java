@@ -737,7 +737,7 @@ public abstract class ClassUtils {
 		Set<Class<?>> interfaces = new LinkedHashSet<>();
 		Class<?> current = clazz;
 		while (current != null) {
-			Class<?>[] ifcs = current.getInterfaces();
+			Class<?>[] ifcs = current.getInterfaces();// 获取改对象所实现的接口
 			for (Class<?> ifc : ifcs) {
 				if (isVisible(ifc, classLoader)) {
 					interfaces.add(ifc);
@@ -869,7 +869,7 @@ public abstract class ClassUtils {
 	 * @return the user-defined class
 	 */
 	public static Class<?> getUserClass(Class<?> clazz) {
-		if (clazz.getName().contains(CGLIB_CLASS_SEPARATOR)) {
+		if (clazz.getName().contains(CGLIB_CLASS_SEPARATOR)) { //如果是又CGLB代理的类，则回返回原始类
 			Class<?> superclass = clazz.getSuperclass();
 			if (superclass != null && superclass != Object.class) {
 				return superclass;

@@ -16,16 +16,16 @@
 
 package org.springframework.core.type;
 
+import org.springframework.core.annotation.AnnotatedElementUtils;
+import org.springframework.lang.Nullable;
+import org.springframework.util.MultiValueMap;
+
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
-
-import org.springframework.core.annotation.AnnotatedElementUtils;
-import org.springframework.lang.Nullable;
-import org.springframework.util.MultiValueMap;
 
 /**
  * {@link AnnotationMetadata} implementation that uses standard reflection
@@ -67,7 +67,7 @@ public class StandardAnnotationMetadata extends StandardClassMetadata implements
 	 */
 	public StandardAnnotationMetadata(Class<?> introspectedClass, boolean nestedAnnotationsAsMap) {
 		super(introspectedClass);
-		this.annotations = introspectedClass.getAnnotations();
+		this.annotations = introspectedClass.getAnnotations(); //注解信息
 		this.nestedAnnotationsAsMap = nestedAnnotationsAsMap;
 	}
 

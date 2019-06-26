@@ -16,29 +16,19 @@
 
 package org.springframework.context.support;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Comparator;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
 import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
-import org.springframework.beans.factory.support.BeanDefinitionRegistry;
-import org.springframework.beans.factory.support.BeanDefinitionRegistryPostProcessor;
-import org.springframework.beans.factory.support.DefaultListableBeanFactory;
-import org.springframework.beans.factory.support.MergedBeanDefinitionPostProcessor;
-import org.springframework.beans.factory.support.RootBeanDefinition;
+import org.springframework.beans.factory.support.*;
 import org.springframework.core.OrderComparator;
 import org.springframework.core.Ordered;
 import org.springframework.core.PriorityOrdered;
 import org.springframework.lang.Nullable;
+
+import java.util.*;
 
 /**
  * Delegate for AbstractApplicationContext's post-processor handling.
@@ -47,9 +37,18 @@ import org.springframework.lang.Nullable;
  * @since 4.0
  */
 final class PostProcessorRegistrationDelegate {
-
+     //完成BeanFactoryPostProcessor的实例化和postProcessBeanDefinitionRegistry调用过程
 	public static void invokeBeanFactoryPostProcessors(
 			ConfigurableListableBeanFactory beanFactory, List<BeanFactoryPostProcessor> beanFactoryPostProcessors) {
+
+		/**
+		 * spring boot 最基础的启动， beanFactry = DefaultListableBeanFactory
+		 * beanFactoryPostProcessors ：CachingMetadataReaderFactoryPostProcessor
+		 *                            ConfigurationWarningsPostProcessor
+		 *                            PropertySourceOrderingPostProcessor
+		 *
+		 */
+
 
 		// Invoke BeanDefinitionRegistryPostProcessors first, if any.
 		Set<String> processedBeans = new HashSet<>();
@@ -64,9 +63,11 @@ final class PostProcessorRegistrationDelegate {
 					BeanDefinitionRegistryPostProcessor registryProcessor =
 							(BeanDefinitionRegistryPostProcessor) postProcessor;
 					registryProcessor.postProcessBeanDefinitionRegistry(registry);
+					//CachingMetadataReaderFactoryPostProcessor    ConfigurationWarningsPostProcessor
 					registryProcessors.add(registryProcessor);
 				}
 				else {
+					//PropertySourceOrderingPostProcessor
 					regularPostProcessors.add(postProcessor);
 				}
 			}
@@ -88,6 +89,7 @@ final class PostProcessorRegistrationDelegate {
 			}
 			sortPostProcessors(currentRegistryProcessors, beanFactory);
 			registryProcessors.addAll(currentRegistryProcessors);
+			//这里执行了ConfigurationClassPostProcessor的postProcessBeanDefinitionRegistry方法
 			invokeBeanDefinitionRegistryPostProcessors(currentRegistryProcessors, registry);
 			currentRegistryProcessors.clear();
 

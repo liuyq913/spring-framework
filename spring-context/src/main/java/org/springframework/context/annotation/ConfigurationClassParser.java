@@ -16,28 +16,8 @@
 
 package org.springframework.context.annotation;
 
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.lang.annotation.Annotation;
-import java.net.UnknownHostException;
-import java.util.ArrayDeque;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.Deque;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.BeanDefinitionStoreException;
 import org.springframework.beans.factory.annotation.AnnotatedBeanDefinition;
@@ -58,10 +38,7 @@ import org.springframework.core.Ordered;
 import org.springframework.core.annotation.AnnotationAttributes;
 import org.springframework.core.annotation.AnnotationAwareOrderComparator;
 import org.springframework.core.annotation.AnnotationUtils;
-import org.springframework.core.env.CompositePropertySource;
-import org.springframework.core.env.ConfigurableEnvironment;
-import org.springframework.core.env.Environment;
-import org.springframework.core.env.MutablePropertySources;
+import org.springframework.core.env.*;
 import org.springframework.core.env.PropertySource;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
@@ -76,12 +53,13 @@ import org.springframework.core.type.classreading.MetadataReader;
 import org.springframework.core.type.classreading.MetadataReaderFactory;
 import org.springframework.core.type.filter.AssignableTypeFilter;
 import org.springframework.lang.Nullable;
-import org.springframework.util.Assert;
-import org.springframework.util.ClassUtils;
-import org.springframework.util.CollectionUtils;
-import org.springframework.util.LinkedMultiValueMap;
-import org.springframework.util.MultiValueMap;
-import org.springframework.util.StringUtils;
+import org.springframework.util.*;
+
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.lang.annotation.Annotation;
+import java.net.UnknownHostException;
+import java.util.*;
 
 /**
  * Parses a {@link Configuration} class definition, populating a collection of
@@ -167,7 +145,7 @@ class ConfigurationClassParser {
 			BeanDefinition bd = holder.getBeanDefinition();
 			try {
 				if (bd instanceof AnnotatedBeanDefinition) {
-					parse(((AnnotatedBeanDefinition) bd).getMetadata(), holder.getBeanName());
+					parse(((AnnotatedBeanDefinition) bd).getMetadata(), holder.getBeanName()); //解析
 				}
 				else if (bd instanceof AbstractBeanDefinition && ((AbstractBeanDefinition) bd).hasBeanClass()) {
 					parse(((AbstractBeanDefinition) bd).getBeanClass(), holder.getBeanName());
@@ -184,7 +162,7 @@ class ConfigurationClassParser {
 						"Failed to parse configuration class [" + bd.getBeanClassName() + "]", ex);
 			}
 		}
-
+       //处理importSelect
 		processDeferredImportSelectors();
 	}
 
@@ -304,7 +282,7 @@ class ConfigurationClassParser {
 
 		// Process any @ImportResource annotations
 		AnnotationAttributes importResource =
-				AnnotationConfigUtils.attributesFor(sourceClass.getMetadata(), ImportResource.class);
+				AnnotationConfigUtils.attributesFor(sourceClass.getMetadata(), ImportResource.class); //这里会
 		if (importResource != null) {
 			String[] resources = importResource.getStringArray("locations");
 			Class<? extends BeanDefinitionReader> readerClass = importResource.getClass("reader");
@@ -510,7 +488,7 @@ class ConfigurationClassParser {
 		Set<SourceClass> imports = new LinkedHashSet<>();
 		Set<SourceClass> visited = new LinkedHashSet<>();
 		collectImports(sourceClass, imports, visited);
-		return imports;
+		return imports; //返回import的内部属性ImportSelector
 	}
 
 	/**
@@ -541,6 +519,7 @@ class ConfigurationClassParser {
 	}
 
 	private void processDeferredImportSelectors() {
+		//拿到DeferredImportSelector 例如：AutoConfigurationImportSelector
 		List<DeferredImportSelectorHolder> deferredImports = this.deferredImportSelectors;
 		this.deferredImportSelectors = null;
 		if (deferredImports == null) {
@@ -551,6 +530,7 @@ class ConfigurationClassParser {
 		Map<Object, DeferredImportSelectorGrouping> groupings = new LinkedHashMap<>();
 		Map<AnnotationMetadata, ConfigurationClass> configurationClasses = new HashMap<>();
 		for (DeferredImportSelectorHolder deferredImport : deferredImports) {
+			//AutoConfigurationImportSelector.AutoConfigurationGroup.class;
 			Class<? extends Group> group = deferredImport.getImportSelector().getImportGroup();
 			DeferredImportSelectorGrouping grouping = groupings.computeIfAbsent(
 					(group != null ? group : deferredImport),
@@ -605,11 +585,12 @@ class ConfigurationClassParser {
 					if (candidate.isAssignable(ImportSelector.class)) {
 						// Candidate class is an ImportSelector -> delegate to it to determine imports
 						Class<?> candidateClass = candidate.loadClass();
+						//EnableConfigurationPropertiesImportSelector   AutoConfigurationImportSelector（触发自动配置）
 						ImportSelector selector = BeanUtils.instantiateClass(candidateClass, ImportSelector.class);
 						ParserStrategyUtils.invokeAwareMethods(
 								selector, this.environment, this.resourceLoader, this.registry);
 						if (this.deferredImportSelectors != null && selector instanceof DeferredImportSelector) {
-							this.deferredImportSelectors.add(
+							this.deferredImportSelectors.add( //如果是DeferredImportSelector 则加入到deferredImportSelectors
 									new DeferredImportSelectorHolder(configClass, (DeferredImportSelector) selector));
 						}
 						else {
@@ -676,6 +657,7 @@ class ConfigurationClassParser {
 	private SourceClass asSourceClass(ConfigurationClass configurationClass) throws IOException {
 		AnnotationMetadata metadata = configurationClass.getMetadata();
 		if (metadata instanceof StandardAnnotationMetadata) {
+			//class com.liuyq.springboot.autoconfig.MyRun
 			return asSourceClass(((StandardAnnotationMetadata) metadata).getIntrospectedClass());
 		}
 		return asSourceClass(metadata.getClassName());
@@ -828,7 +810,7 @@ class ConfigurationClassParser {
 				this.group.process(deferredImport.getConfigurationClass().getMetadata(),
 						deferredImport.getImportSelector());
 			}
-			return this.group.selectImports();
+			return this.group.selectImports();   //这里返回需要自动配置的类？？？
 		}
 	}
 
